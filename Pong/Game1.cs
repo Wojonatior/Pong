@@ -11,8 +11,11 @@ namespace Pong.Desktop
     {
         Texture2D ballTexture;
         Vector2 ballPosition;
-        float ballVelocityX;
-        float ballVelocityY;
+        Vector2 ballVelocity;
+        System.Random random;
+        const float MAX_SPEED = 50f;
+        const float MIN_SPEED = 500f;
+
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
@@ -37,9 +40,11 @@ namespace Pong.Desktop
                 graphics.PreferredBackBufferHeight / 2
             );
 
-            ballVelocityX = 200f;
-            ballVelocityY = 160f;
-
+            ballVelocity = new Vector2(
+                200f,
+                160f
+            );
+             random = new System.Random();
             base.Initialize();
         }
 
@@ -65,20 +70,23 @@ namespace Pong.Desktop
             // TODO: Unload any non ContentManager content here
         }
 
-        bool ballAtLeftBorder(){
+        bool ballAtLeftBorder() {
             return ballPosition.X < ballTexture.Width / 2;
         }
-        bool ballAtRightBorder()
-        {
+        bool ballAtRightBorder() {
             return ballPosition.X > (graphics.PreferredBackBufferWidth - ballTexture.Width / 2);
         }
-        bool ballAtBottomBorder()
-        {
+        bool ballAtBottomBorder() {
             return ballPosition.Y < ballTexture.Height / 2;
         }
-        bool ballAtTopBorder()
-        {
+        bool ballAtTopBorder() {
             return ballPosition.Y > (graphics.PreferredBackBufferHeight - ballTexture.Height / 2);
+        }
+        float getSpeedMultiplier(){
+            return random.Next(5, 16) / 10;
+        }
+        float clampSpeed(float speed){
+            return (speed < MIN_SPEED) ? MIN_SPEED : (speed > MAX_SPEED) ? MAX_SPEED : speed;
         }
         /// <summary>
         /// Allows the game to run logic such as updating the world,
@@ -90,17 +98,17 @@ namespace Pong.Desktop
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            ballPosition.X += ballVelocityX * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            ballPosition.Y += ballVelocityY * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            ballPosition.X += ballVelocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            ballPosition.Y += ballVelocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (ballAtLeftBorder() || ballAtRightBorder()){
-                ballVelocityX *= -1;
+                ballVelocity.X *= -1 * getSpeedMultiplier();
                 ballPosition.X = MathHelper.Min(MathHelper.Max(ballTexture.Width / 2, ballPosition.X), graphics.PreferredBackBufferWidth - ballTexture.Width / 2);
             }
 
             if (ballAtTopBorder() || ballAtBottomBorder())
             {
-                ballVelocityY *= -1;
+                ballVelocity.Y *= -1 * getSpeedMultiplier();
                 ballPosition.Y = MathHelper.Min(MathHelper.Max(ballTexture.Height / 2, ballPosition.Y), graphics.PreferredBackBufferHeight - ballTexture.Height / 2);
             }
 
