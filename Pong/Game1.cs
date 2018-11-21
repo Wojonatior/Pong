@@ -71,22 +71,21 @@ namespace Pong.Desktop
         }
 
         bool ballAtLeftBorder() {
-            return ballPosition.X < ballTexture.Width / 2;
+            return ballPosition.X <= ballTexture.Width / 2;
         }
         bool ballAtRightBorder() {
-            return ballPosition.X > (graphics.PreferredBackBufferWidth - ballTexture.Width / 2);
+            return ballPosition.X >= graphics.PreferredBackBufferWidth - ballTexture.Width / 2;
         }
         bool ballAtBottomBorder() {
-            return ballPosition.Y < ballTexture.Height / 2;
+            return ballPosition.Y <= ballTexture.Height / 2;
         }
         bool ballAtTopBorder() {
-            return ballPosition.Y > (graphics.PreferredBackBufferHeight - ballTexture.Height / 2);
+            return ballPosition.Y >= graphics.PreferredBackBufferHeight - ballTexture.Height / 2;
         }
         float getSpeedMultiplier(){
-            return random.Next(5, 16) / 10;
-        }
-        float clampSpeed(float speed){
-            return (speed < MIN_SPEED) ? MIN_SPEED : (speed > MAX_SPEED) ? MAX_SPEED : speed;
+            // Generates a random number between .5 and 2.0 to double or halve speed
+            // TODO: Make the number of > and < 1 multipliers the same
+            return (float)random.Next(5, 21) / 10;
         }
         /// <summary>
         /// Allows the game to run logic such as updating the world,
@@ -101,15 +100,14 @@ namespace Pong.Desktop
             ballPosition.X += ballVelocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
             ballPosition.Y += ballVelocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (ballAtLeftBorder() || ballAtRightBorder()){
+            if (ballAtLeftBorder() || ballAtRightBorder()) {
                 ballVelocity.X *= -1 * getSpeedMultiplier();
-                ballPosition.X = MathHelper.Min(MathHelper.Max(ballTexture.Width / 2, ballPosition.X), graphics.PreferredBackBufferWidth - ballTexture.Width / 2);
+                ballPosition.X = MathHelper.Clamp(ballPosition.X, ballTexture.Width / 2, graphics.PreferredBackBufferWidth - (ballTexture.Width / 2));
             }
 
-            if (ballAtTopBorder() || ballAtBottomBorder())
-            {
+            if (ballAtTopBorder() || ballAtBottomBorder()) {
                 ballVelocity.Y *= -1 * getSpeedMultiplier();
-                ballPosition.Y = MathHelper.Min(MathHelper.Max(ballTexture.Height / 2, ballPosition.Y), graphics.PreferredBackBufferHeight - ballTexture.Height / 2);
+                ballPosition.Y = MathHelper.Clamp(ballPosition.Y, ballTexture.Height / 2, graphics.PreferredBackBufferHeight - (ballTexture.Height / 2));
             }
 
             // Get the max between half of the width of the ball, and the x position
