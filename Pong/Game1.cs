@@ -4,6 +4,32 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Pong.Desktop
 {
+
+    class Utilities
+    {
+        public static bool atLeftBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
+        {
+            return coordinates.X <= texture.Width / 2;
+        }
+        public static bool atRightBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
+        {
+            return coordinates.X >= graphics.PreferredBackBufferWidth - texture.Width / 2;
+        }
+        public static bool atBottomBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
+        {
+            return coordinates.Y <= texture.Height / 2;
+        }
+        public static bool atTopBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
+        {
+            return coordinates.Y >= graphics.PreferredBackBufferHeight - texture.Height / 2;
+        }
+        public static float getSpeedMultiplier(System.Random random)
+        {
+            // Generates a random number between .5 and 2.0 to double or halve speed
+            // TODO: Make the number of > and < 1 multipliers the same
+            return (float)random.Next(5, 21) / 10;
+        }
+    }
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -69,24 +95,6 @@ namespace Pong.Desktop
         {
             // TODO: Unload any non ContentManager content here
         }
-
-        bool ballAtLeftBorder() {
-            return ballPosition.X <= ballTexture.Width / 2;
-        }
-        bool ballAtRightBorder() {
-            return ballPosition.X >= graphics.PreferredBackBufferWidth - ballTexture.Width / 2;
-        }
-        bool ballAtBottomBorder() {
-            return ballPosition.Y <= ballTexture.Height / 2;
-        }
-        bool ballAtTopBorder() {
-            return ballPosition.Y >= graphics.PreferredBackBufferHeight - ballTexture.Height / 2;
-        }
-        float getSpeedMultiplier(){
-            // Generates a random number between .5 and 2.0 to double or halve speed
-            // TODO: Make the number of > and < 1 multipliers the same
-            return (float)random.Next(5, 21) / 10;
-        }
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -100,13 +108,13 @@ namespace Pong.Desktop
             ballPosition.X += ballVelocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
             ballPosition.Y += ballVelocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (ballAtLeftBorder() || ballAtRightBorder()) {
-                ballVelocity.X *= -1 * getSpeedMultiplier();
+            if (Utilities.atLeftBorder(ballPosition, ballTexture, graphics) || Utilities.atRightBorder(ballPosition, ballTexture, graphics)) {
+                ballVelocity.X *= -1 * Utilities.getSpeedMultiplier(random);
                 ballPosition.X = MathHelper.Clamp(ballPosition.X, ballTexture.Width / 2, graphics.PreferredBackBufferWidth - (ballTexture.Width / 2));
             }
 
-            if (ballAtTopBorder() || ballAtBottomBorder()) {
-                ballVelocity.Y *= -1 * getSpeedMultiplier();
+            if (Utilities.atTopBorder(ballPosition, ballTexture, graphics) || Utilities.atBottomBorder(ballPosition, ballTexture, graphics)) {
+                ballVelocity.Y *= -1 * Utilities.getSpeedMultiplier(random);
                 ballPosition.Y = MathHelper.Clamp(ballPosition.Y, ballTexture.Height / 2, graphics.PreferredBackBufferHeight - (ballTexture.Height / 2));
             }
 
