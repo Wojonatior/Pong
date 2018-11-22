@@ -116,16 +116,19 @@ namespace Pong.Desktop
         {
             // TODO: Unload any non ContentManager content here
         }
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime)
-        {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
 
+        private void moveLeftPaddle(){ }
+        private void moveRightPaddle(){
+            rightPaddle.position.Y = ball.position.Y;
+        }
+        private void boundRightPaddle(){
+            //rightPaddle.position.Y = MathHelper.Clamp(rightPaddle.position.Y, rightPaddle.texture.Height / 2, graphics.PreferredBackBufferHeight - (rightPaddle.texture.Height / 2));
+        }
+        private float getBoundY(GameObject gameObject){
+            return MathHelper.Clamp(gameObject.position.Y, gameObject.texture.Height / 2, graphics.PreferredBackBufferHeight - (gameObject.texture.Height / 2));
+        }
+
+        private void moveAndBoundBall(GameTime gameTime){
             ball.position.X += ball.velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
             ball.position.Y += ball.velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -138,11 +141,22 @@ namespace Pong.Desktop
                 ball.velocity.Y *= -1 * Utilities.getSpeedMultiplier(random);
                 ball.position.Y = MathHelper.Clamp(ball.position.Y, ball.texture.Height / 2, graphics.PreferredBackBufferHeight - (ball.texture.Height / 2));
             }
+        }
+        /// <summary>
+        /// Allows the game to run logic such as updating the world,
+        /// checking for collisions, gathering input, and playing audio.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
 
-            // Get the max between half of the width of the ball, and the x position
-            // get the min between that and the prefered width minus half the width of the ball
-            // if x is bigger than width - ballWidth/2, it's over the right border
-            // if x is less than ballWidth/2 it's over the left border 
+            moveAndBoundBall(gameTime);
+            moveLeftPaddle();
+            moveRightPaddle();
+            rightPaddle.position.Y = getBoundY(rightPaddle);
+
 
             base.Update(gameTime);
         }
