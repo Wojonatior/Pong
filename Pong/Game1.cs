@@ -5,6 +5,12 @@ using Microsoft.Xna.Framework.Input;
 namespace Pong.Desktop
 {
 
+    public struct GameObject {
+        public Vector2 position;
+        public Vector2 velocity;
+        public Texture2D texture;
+    }
+
     class Utilities
     {
         public static bool atLeftBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
@@ -30,16 +36,17 @@ namespace Pong.Desktop
             return (float)random.Next(5, 21) / 10;
         }
     }
+
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
     public class Game1 : Game
     {
-        Texture2D ballTexture;
-        Vector2 ballPosition;
-        Vector2 ballVelocity;
+        GameObject ball;
+        GameObject leftPaddle;
+        GameObject rightPaddle;
         System.Random random;
-        const float MAX_SPEED = 50f;
+        const float MAX_BALL_SPEED = 50f;
         const float MIN_SPEED = 500f;
 
 
@@ -61,16 +68,28 @@ namespace Pong.Desktop
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            ballPosition = new Vector2(
+            ball.position = new Vector2(
                 graphics.PreferredBackBufferWidth / 2,
                 graphics.PreferredBackBufferHeight / 2
             );
-
-            ballVelocity = new Vector2(
+            ball.velocity = new Vector2(
                 200f,
                 160f
             );
-             random = new System.Random();
+
+            leftPaddle.position = new Vector2(
+                32 + 16, // 32 + half the texture width
+                graphics.PreferredBackBufferHeight / 2
+            );
+            leftPaddle.velocity = new Vector2(0,0);
+
+            rightPaddle.position = new Vector2(
+                graphics.PreferredBackBufferWidth - (32 + 16), // 32 + half the texture width
+                graphics.PreferredBackBufferHeight / 2
+            );
+
+            rightPaddle.velocity = new Vector2(0,0);
+            random = new System.Random();
             base.Initialize();
         }
 
@@ -84,7 +103,9 @@ namespace Pong.Desktop
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            ballTexture = Content.Load<Texture2D>("ball");
+            ball.texture = Content.Load<Texture2D>("ball");
+            leftPaddle.texture = Content.Load<Texture2D>("paddle");
+            rightPaddle.texture = Content.Load<Texture2D>("paddle");
         }
 
         /// <summary>
@@ -105,17 +126,17 @@ namespace Pong.Desktop
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            ballPosition.X += ballVelocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            ballPosition.Y += ballVelocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            ball.position.X += ball.velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            ball.position.Y += ball.velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (Utilities.atLeftBorder(ballPosition, ballTexture, graphics) || Utilities.atRightBorder(ballPosition, ballTexture, graphics)) {
-                ballVelocity.X *= -1 * Utilities.getSpeedMultiplier(random);
-                ballPosition.X = MathHelper.Clamp(ballPosition.X, ballTexture.Width / 2, graphics.PreferredBackBufferWidth - (ballTexture.Width / 2));
+            if (Utilities.atLeftBorder(ball.position, ball.texture, graphics) || Utilities.atRightBorder(ball.position, ball.texture, graphics)) {
+                ball.velocity.X *= -1 * Utilities.getSpeedMultiplier(random);
+                ball.position.X = MathHelper.Clamp(ball.position.X, ball.texture.Width / 2, graphics.PreferredBackBufferWidth - (ball.texture.Width / 2));
             }
 
-            if (Utilities.atTopBorder(ballPosition, ballTexture, graphics) || Utilities.atBottomBorder(ballPosition, ballTexture, graphics)) {
-                ballVelocity.Y *= -1 * Utilities.getSpeedMultiplier(random);
-                ballPosition.Y = MathHelper.Clamp(ballPosition.Y, ballTexture.Height / 2, graphics.PreferredBackBufferHeight - (ballTexture.Height / 2));
+            if (Utilities.atTopBorder(ball.position, ball.texture, graphics) || Utilities.atBottomBorder(ball.position, ball.texture, graphics)) {
+                ball.velocity.Y *= -1 * Utilities.getSpeedMultiplier(random);
+                ball.position.Y = MathHelper.Clamp(ball.position.Y, ball.texture.Height / 2, graphics.PreferredBackBufferHeight - (ball.texture.Height / 2));
             }
 
             // Get the max between half of the width of the ball, and the x position
@@ -137,12 +158,34 @@ namespace Pong.Desktop
             // TODO: Add your drawing code here
             spriteBatch.Begin();
             spriteBatch.Draw(
-                ballTexture,
-                ballPosition,
+                ball.texture,
+                ball.position,
                 null,
                 Color.White,
                 0f,
-                new Vector2(ballTexture.Width / 2, ballTexture.Height / 2),
+                new Vector2(ball.texture.Width / 2, ball.texture.Height / 2),
+                Vector2.One,
+                SpriteEffects.None,
+                0f
+            );
+            spriteBatch.Draw(
+                leftPaddle.texture,
+                leftPaddle.position,
+                null,
+                Color.White,
+                0f,
+                new Vector2(leftPaddle.texture.Width / 2, leftPaddle.texture.Height / 2),
+                Vector2.One,
+                SpriteEffects.None,
+                0f
+            );
+            spriteBatch.Draw(
+                rightPaddle.texture,
+                rightPaddle.position,
+                null,
+                Color.White,
+                0f,
+                new Vector2(rightPaddle.texture.Width / 2, rightPaddle.texture.Height / 2),
                 Vector2.One,
                 SpriteEffects.None,
                 0f
