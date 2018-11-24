@@ -48,6 +48,7 @@ namespace Pong.Desktop
         System.Random random;
         const float MAX_BALL_SPEED = 50f;
         const float MIN_SPEED = 500f;
+        const float PADDLE_SPEED = 100f;
 
 
         GraphicsDeviceManager graphics;
@@ -117,9 +118,19 @@ namespace Pong.Desktop
             // TODO: Unload any non ContentManager content here
         }
 
-        private void moveLeftPaddle(){ }
-        private void moveRightPaddle(){
-            rightPaddle.position.Y = ball.position.Y;
+        private float getLeftPaddlePositionYDiff(float paddleSpeed, GameTime gameTime){
+            float yPosDiff = 0;
+            var kstate = Keyboard.GetState();
+            if (kstate.IsKeyDown(Keys.Up))
+                yPosDiff -= paddleSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            
+            if(kstate.IsKeyDown(Keys.Down))
+                yPosDiff +=  paddleSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            return yPosDiff;
+        }
+        private float getRightPaddlePositionY(){
+            return ball.position.Y;
         }
         private void boundRightPaddle(){
             //rightPaddle.position.Y = MathHelper.Clamp(rightPaddle.position.Y, rightPaddle.texture.Height / 2, graphics.PreferredBackBufferHeight - (rightPaddle.texture.Height / 2));
@@ -153,9 +164,16 @@ namespace Pong.Desktop
                 Exit();
 
             moveAndBoundBall(gameTime);
-            moveLeftPaddle();
-            moveRightPaddle();
+            leftPaddle.position.Y += getLeftPaddlePositionYDiff(PADDLE_SPEED, gameTime);
+            leftPaddle.position.Y = getBoundY(leftPaddle);
+            rightPaddle.position.Y = getRightPaddlePositionY();
             rightPaddle.position.Y = getBoundY(rightPaddle);
+            // TODO: Check for Scoring
+            // TODO: Render Score
+            // TODO: Check for Ball/Paddle Collision
+            // TODO: Render Middle Dashed line 
+            // TODO: Cap Ball Speed
+            // TODO: Maybe remove random ball speed and replace with geometry
 
 
             base.Update(gameTime);
