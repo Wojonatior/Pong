@@ -52,6 +52,9 @@ namespace Pong.Desktop
         GameObject ball;
         GameObject leftPaddle;
         GameObject rightPaddle;
+        SpriteFont font;
+        int leftScore = 0;
+        int rightScore = 0;
         System.Random random;
         const float MAX_BALL_SPEED = 50f;
         const float MIN_BALL_SPEED = 500f;
@@ -114,6 +117,7 @@ namespace Pong.Desktop
             ball.texture = Content.Load<Texture2D>("ball");
             leftPaddle.texture = Content.Load<Texture2D>("paddle");
             rightPaddle.texture = Content.Load<Texture2D>("paddle");
+            font = Content.Load<SpriteFont>("Aldo");
         }
 
         /// <summary>
@@ -187,10 +191,10 @@ namespace Pong.Desktop
             rightPaddle.position.Y = getRightPaddlePositionY();
             rightPaddle.position.Y = getBoundY(rightPaddle);
             // TODO: Check for Scoring
-            // TODO: Render Score
             // TODO: Check for Ball/Paddle Collision
             // TODO: Render Middle Dashed line 
             // TODO: Maybe remove random ball speed and replace with geometry
+            // TODO: Fix ball velocity immediatly jumping to max
 
 
             base.Update(gameTime);
@@ -206,6 +210,8 @@ namespace Pong.Desktop
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
+            spriteBatch.DrawString(font, leftScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 1 / 4, 50), Color.White);
+            spriteBatch.DrawString(font, rightScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 3 / 4 - 37, 50), Color.White);
             spriteBatch.Draw(
                 ball.texture,
                 ball.position,
