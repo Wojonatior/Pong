@@ -35,6 +35,13 @@ namespace Pong.Desktop
             // TODO: Make the number of > and < 1 multipliers the same
             return (float)random.Next(5, 21) / 10;
         }
+        public static float abs(float val){
+            return val >= 0 ? val : val * -1;
+        }
+
+        public static float getSign(float val){
+            return val >= 0 ? 1 : -1;
+        }
     }
 
     /// <summary>
@@ -47,8 +54,8 @@ namespace Pong.Desktop
         GameObject rightPaddle;
         System.Random random;
         const float MAX_BALL_SPEED = 50f;
-        const float MIN_SPEED = 500f;
-        const float PADDLE_SPEED = 100f;
+        const float MIN_BALL_SPEED = 500f;
+        const float PADDLE_SPEED = 250f;
 
 
         GraphicsDeviceManager graphics;
@@ -139,18 +146,29 @@ namespace Pong.Desktop
             return MathHelper.Clamp(gameObject.position.Y, gameObject.texture.Height / 2, graphics.PreferredBackBufferHeight - (gameObject.texture.Height / 2));
         }
 
+        private float getBoundX(GameObject gameObject)
+        {
+            return MathHelper.Clamp(gameObject.position.X, gameObject.texture.Width / 2, graphics.PreferredBackBufferWidth - (gameObject.texture.Width / 2));
+        }
+
+        private float clampBallSpeed(float speed){
+            return MathHelper.Clamp(speed, MIN_BALL_SPEED, MAX_BALL_SPEED);
+        }
+
         private void moveAndBoundBall(GameTime gameTime){
             ball.position.X += ball.velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
             ball.position.Y += ball.velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (Utilities.atLeftBorder(ball.position, ball.texture, graphics) || Utilities.atRightBorder(ball.position, ball.texture, graphics)) {
-                ball.velocity.X *= -1 * Utilities.getSpeedMultiplier(random);
-                ball.position.X = MathHelper.Clamp(ball.position.X, ball.texture.Width / 2, graphics.PreferredBackBufferWidth - (ball.texture.Width / 2));
+                var absNewVelocity = Utilities.abs(ball.velocity.X * Utilities.getSpeedMultiplier(random));
+                ball.velocity.X = Utilities.getSign(ball.velocity.X) * -1 * clampBallSpeed(absNewVelocity);
+                ball.position.X = getBoundX(ball);
             }
 
             if (Utilities.atTopBorder(ball.position, ball.texture, graphics) || Utilities.atBottomBorder(ball.position, ball.texture, graphics)) {
-                ball.velocity.Y *= -1 * Utilities.getSpeedMultiplier(random);
-                ball.position.Y = MathHelper.Clamp(ball.position.Y, ball.texture.Height / 2, graphics.PreferredBackBufferHeight - (ball.texture.Height / 2));
+                var absNewVelocity = Utilities.abs(ball.velocity.Y * Utilities.getSpeedMultiplier(random));
+                ball.velocity.Y = Utilities.getSign(ball.velocity.Y) * -1 * clampBallSpeed(absNewVelocity);
+                ball.position.Y = getBoundY(ball);
             }
         }
         /// <summary>
@@ -172,7 +190,6 @@ namespace Pong.Desktop
             // TODO: Render Score
             // TODO: Check for Ball/Paddle Collision
             // TODO: Render Middle Dashed line 
-            // TODO: Cap Ball Speed
             // TODO: Maybe remove random ball speed and replace with geometry
 
 
