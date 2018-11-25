@@ -150,9 +150,16 @@ namespace Pong.Desktop
             return MathHelper.Clamp(gameObject.position.Y, gameObject.texture.Height / 2, graphics.PreferredBackBufferHeight - (gameObject.texture.Height / 2));
         }
 
-        private float getBoundX(GameObject gameObject)
-        {
+        private float getBoundX(GameObject gameObject) {
             return MathHelper.Clamp(gameObject.position.X, gameObject.texture.Width / 2, graphics.PreferredBackBufferWidth - (gameObject.texture.Width / 2));
+        }
+
+        private bool checkLeftScore(GameObject ball){
+            return ball.position.X - ball.texture.Width / 2 <= 0;
+        }
+
+        private bool checkRightScore(GameObject ball){
+            return ball.position.X + ball.texture.Width / 2 >= graphics.PreferredBackBufferWidth;
         }
 
         private float clampBallSpeed(float speed){
@@ -185,6 +192,8 @@ namespace Pong.Desktop
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            leftScore += checkLeftScore(ball) ? 1 : 0;
+            rightScore += checkRightScore(ball) ? 1 : 0;
             moveAndBoundBall(gameTime);
             leftPaddle.position.Y += getLeftPaddlePositionYDiff(PADDLE_SPEED, gameTime);
             leftPaddle.position.Y = getBoundY(leftPaddle);
