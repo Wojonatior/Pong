@@ -166,6 +166,25 @@ namespace Pong.Desktop
             return MathHelper.Clamp(speed, MIN_BALL_SPEED, MAX_BALL_SPEED);
         }
 
+        private bool checkTwoObjectCollision(GameObject obj1, GameObject obj2){
+            return obj1.position.X < obj2.position.X + obj2.texture.Width &&
+            obj1.position.X + obj1.texture.Width > obj2.position.X &&
+            obj1.position.Y < obj2.position.Y + obj2.texture.Height &&
+            obj1.position.Y + obj1.texture.Height > obj2.position.Y;
+        }
+
+        private void ballAndPaddleCollision(){
+            if (checkTwoObjectCollision(leftPaddle, ball)){
+                ball.position.X = leftPaddle.position.X + (leftPaddle.texture.Width / 2) + (ball.texture.Width / 2);
+                ball.velocity.X *= -1;
+            }
+
+            if (checkTwoObjectCollision(rightPaddle, ball)){
+                ball.position.X = rightPaddle.position.X - (rightPaddle.texture.Width / 2) - (ball.texture.Width / 2);
+                ball.velocity.X *= -1;
+            }
+        }
+
         private void moveAndBoundBall(GameTime gameTime){
             ball.position.X += ball.velocity.X * (float)gameTime.ElapsedGameTime.TotalSeconds;
             ball.position.Y += ball.velocity.Y * (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -195,32 +214,31 @@ namespace Pong.Desktop
             leftScore += checkLeftScore(ball) ? 1 : 0;
             rightScore += checkRightScore(ball) ? 1 : 0;
             moveAndBoundBall(gameTime);
+            ballAndPaddleCollision();
             leftPaddle.position.Y += getLeftPaddlePositionYDiff(PADDLE_SPEED, gameTime);
             leftPaddle.position.Y = getBoundY(leftPaddle);
             rightPaddle.position.Y = getRightPaddlePositionY();
             rightPaddle.position.Y = getBoundY(rightPaddle);
-            // TODO: Check for Scoring
             // TODO: Check for Ball/Paddle Collision
             // TODO: Render Middle Dashed line 
             // TODO: Maybe remove random ball speed and replace with geometry
             // TODO: Fix ball velocity immediatly jumping to max
+            // TODO: Reset ball to center after score
+            // TODO: Add end game state
+            // TODO: Allow game to reset
+            // TODO: Start game after pressing arrows
+            // TODO: functionalize ball movement
 
 
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.Black);
-
-            // TODO: Add your drawing code here
-            spriteBatch.Begin();
+        private void drawScore(SpriteBatch spriteBatch) {
             spriteBatch.DrawString(font, leftScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 1 / 4, 50), Color.White);
             spriteBatch.DrawString(font, rightScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 3 / 4 - 37, 50), Color.White);
+        }
+
+        private void drawCollisionObjects(SpriteBatch spriteBatch) {
             spriteBatch.Draw(
                 ball.texture,
                 ball.position,
@@ -254,6 +272,22 @@ namespace Pong.Desktop
                 SpriteEffects.None,
                 0f
             );
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.Black);
+
+            // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            var oldScore = leftScore + rightScore;
+            drawScore(spriteBatch);
+            drawCollisionObjects(spriteBatch);
+            var newScore = leftScore + rightScore;
             spriteBatch.End();
 
 
