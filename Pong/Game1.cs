@@ -53,12 +53,15 @@ namespace Pong.Desktop
         GameObject leftPaddle;
         GameObject rightPaddle;
         SpriteFont font;
+        SpriteFont smol_font;
         int leftScore = 0;
         int rightScore = 0;
         System.Random random;
         const float MAX_BALL_SPEED = 50f;
         const float MIN_BALL_SPEED = 500f;
         const float PADDLE_SPEED = 250f;
+        bool gameOver = false;
+        bool notStarted = true;
 
 
         GraphicsDeviceManager graphics;
@@ -118,6 +121,7 @@ namespace Pong.Desktop
             leftPaddle.texture = Content.Load<Texture2D>("paddle");
             rightPaddle.texture = Content.Load<Texture2D>("paddle");
             font = Content.Load<SpriteFont>("Aldo");
+            smol_font = Content.Load<SpriteFont>("44px_Aldo");
         }
 
         /// <summary>
@@ -154,11 +158,11 @@ namespace Pong.Desktop
             return MathHelper.Clamp(gameObject.position.X, gameObject.texture.Width / 2, graphics.PreferredBackBufferWidth - (gameObject.texture.Width / 2));
         }
 
-        private bool checkLeftScore(GameObject ball){
+        private bool checkScoreOnLeft(GameObject ball){
             return ball.position.X - ball.texture.Width / 2 <= 0;
         }
 
-        private bool checkRightScore(GameObject ball){
+        private bool checkScoreOnRight(GameObject ball){
             return ball.position.X + ball.texture.Width / 2 >= graphics.PreferredBackBufferWidth;
         }
 
@@ -167,10 +171,10 @@ namespace Pong.Desktop
         }
 
         private bool checkTwoObjectCollision(GameObject obj1, GameObject obj2){
-            return obj1.position.X < obj2.position.X + obj2.texture.Width &&
-            obj1.position.X + obj1.texture.Width > obj2.position.X &&
-            obj1.position.Y < obj2.position.Y + obj2.texture.Height &&
-            obj1.position.Y + obj1.texture.Height > obj2.position.Y;
+            return obj1.position.X < obj2.position.X + obj2.texture.Width / 2 &&
+            obj1.position.X + obj1.texture.Width / 2 > obj2.position.X &&
+            obj1.position.Y < obj2.position.Y + obj2.texture.Height / 2 &&
+            obj1.position.Y + obj1.texture.Height / 2 > obj2.position.Y;
         }
 
         private void ballAndPaddleCollision(){
@@ -201,6 +205,28 @@ namespace Pong.Desktop
                 ball.position.Y = getBoundY(ball);
             }
         }
+
+        private Vector2 getCenteredVector() {
+            return new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight);
+        }
+
+        private bool checkForGameEnd() {
+            return leftScore >= 1 || rightScore >= 1;
+        }
+
+        private void setupGame() {
+            leftScore = 0;
+            rightScore = 0;
+            gameOver = false;
+            ball.position = getCenteredVector();
+            leftPaddle.position.Y = graphics.PreferredBackBufferHeight / 2;
+            rightPaddle.position.Y = ball.position.Y;
+            ball.velocity = new Vector2(
+                200f,
+                160f
+            );
+        }
+
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -211,14 +237,26 @@ namespace Pong.Desktop
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            leftScore += checkLeftScore(ball) ? 1 : 0;
-            rightScore += checkRightScore(ball) ? 1 : 0;
-            moveAndBoundBall(gameTime);
-            ballAndPaddleCollision();
-            leftPaddle.position.Y += getLeftPaddlePositionYDiff(PADDLE_SPEED, gameTime);
-            leftPaddle.position.Y = getBoundY(leftPaddle);
-            rightPaddle.position.Y = getRightPaddlePositionY();
-            rightPaddle.position.Y = getBoundY(rightPaddle);
+            if (gameOver) {
+                if (Keyboard.GetState().IsKeyDown(Keys.S))
+                    setupGame();
+            } else if (notStarted) {
+                if (Keyboard.GetState().IsKeyDown(Keys.S)) {
+                    setupGame();
+                    notStarted = false;
+                }
+            } else {
+                leftScore += checkScoreOnRight(ball) ? 1 : 0;
+                rightScore += checkScoreOnLeft(ball) ? 1 : 0;
+                ballAndPaddleCollision();
+                moveAndBoundBall(gameTime);
+                leftPaddle.position.Y += getLeftPaddlePositionYDiff(PADDLE_SPEED, gameTime);
+                leftPaddle.position.Y = getBoundY(leftPaddle);
+                rightPaddle.position.Y = getRightPaddlePositionY();
+                rightPaddle.position.Y = getBoundY(rightPaddle);
+                ballAndPaddleCollision();
+                gameOver = checkForGameEnd();
+            }
             // TODO: Check for Ball/Paddle Collision
             // TODO: Render Middle Dashed line 
             // TODO: Maybe remove random ball speed and replace with geometry
@@ -236,6 +274,27 @@ namespace Pong.Desktop
         private void drawScore(SpriteBatch spriteBatch) {
             spriteBatch.DrawString(font, leftScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 1 / 4, 50), Color.White);
             spriteBatch.DrawString(font, rightScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 3 / 4 - 37, 50), Color.White);
+        }
+
+        private void drawStartAndEndText(SpriteBatch spriteBatch) {
+            if(notStarted || gameOver)
+                spriteBatch.DrawString(
+                    smol_font,
+                    "Press The S Key to Start",
+                    new Vector2(
+                        graphics.PreferredBackBufferWidth / 4 - 65,
+                        150),
+                    Color.White);
+            if (gameOver) {
+                string winningSide = leftScore >= 1 ? "Left" : "RIght";
+                spriteBatch.DrawString(
+                    smol_font,
+                    winningSide + " Has Won!",
+                    new Vector2(
+                        graphics.PreferredBackBufferWidth / 4 + 40,
+                        250),
+                    Color.White);
+            }
         }
 
         private void drawCollisionObjects(SpriteBatch spriteBatch) {
@@ -287,6 +346,7 @@ namespace Pong.Desktop
             var oldScore = leftScore + rightScore;
             drawScore(spriteBatch);
             drawCollisionObjects(spriteBatch);
+            drawStartAndEndText(spriteBatch);
             var newScore = leftScore + rightScore;
             spriteBatch.End();
 

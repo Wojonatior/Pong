@@ -13,6 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin 44px_Aldo.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:44px_Aldo.spritefont
+
 #begin Aldo.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
