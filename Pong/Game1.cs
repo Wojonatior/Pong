@@ -211,7 +211,7 @@ namespace Pong.Desktop
         }
 
         private bool checkForGameEnd() {
-            return leftScore >= 1 || rightScore >= 1;
+            return leftScore >= 5 || rightScore >= 5;
         }
 
         private void setupGame() {
@@ -257,14 +257,12 @@ namespace Pong.Desktop
                 ballAndPaddleCollision();
                 gameOver = checkForGameEnd();
             }
-            // TODO: Check for Ball/Paddle Collision
+            // TODO: Check for collision during movement, not just before/after
             // TODO: Render Middle Dashed line 
             // TODO: Maybe remove random ball speed and replace with geometry
-            // TODO: Fix ball velocity immediatly jumping to max
+            // TODO: Fix ball velocity jumping to max
+            // TODO: Adjust ball velocity on paddle hits
             // TODO: Reset ball to center after score
-            // TODO: Add end game state
-            // TODO: Allow game to reset
-            // TODO: Start game after pressing arrows
             // TODO: functionalize ball movement
 
 
@@ -286,7 +284,7 @@ namespace Pong.Desktop
                         150),
                     Color.White);
             if (gameOver) {
-                string winningSide = leftScore >= 1 ? "Left" : "RIght";
+                string winningSide = leftScore >= 5 ? "Left" : "Right";
                 spriteBatch.DrawString(
                     smol_font,
                     winningSide + " Has Won!",
