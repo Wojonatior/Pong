@@ -11,8 +11,29 @@ namespace Pong.Desktop
         public Texture2D texture;
     }
 
+    public struct myRectangle {
+        public float width;
+        public float height;
+    }
+
     class Utilities
     {
+        public static myRectangle combineSizesOfGameObjects(GameObject targetObject, GameObject sourceObject){
+            return new myRectangle{
+                width = targetObject.texture.Width + sourceObject.texture.Width,
+                height = targetObject.texture.Height + sourceObject.texture.Height,
+            };
+        }
+
+        public static Vector2 getMajorAxis(Vector2 inVector) {
+            if (abs(inVector.X) > abs(inVector.Y))
+                return new Vector2(inVector.X, 0);
+                // Scalar.Sign these values?
+            else
+                return new Vector2(0, inVector.Y);
+                // Scalar.Sign these values?
+        }
+
         public static bool atLeftBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
         {
             return coordinates.X <= texture.Width / 2;
@@ -42,6 +63,23 @@ namespace Pong.Desktop
         public static float getSign(float val){
             return val >= 0 ? 1 : -1;
         }
+
+        public static BoundingBox getBBfromGameObject(GameObject gObject){
+            var min = new Vector3(gObject.position.X - gObject.texture.Width / 2, gObject.position.Y - gObject.texture.Height / 2, 0);
+            var max = new Vector3(gObject.position.X + gObject.texture.Width / 2, gObject.position.Y + gObject.texture.Height / 2, 0);
+            return new BoundingBox(min, max);
+        }
+
+        public static Rectangle getRectanglefromGameObject(GameObject gObject)
+        {
+            var min = new Vector2(gObject.position.X - gObject.texture.Width / 2, gObject.position.Y - gObject.texture.Height / 2);
+            var max = new Vector2(gObject.position.X + gObject.texture.Width / 2, gObject.position.Y + gObject.texture.Height / 2);
+            var size = new Vector2(max.X - min.X, max.Y - min.Y);
+
+            var minPoint = new Point((int)min.X, (int)min.Y);
+            var sizePoint = new Point((int)size.X, (int)size.Y);
+            return new Rectangle(minPoint, sizePoint);
+        }
     }
 
     /// <summary>
@@ -62,6 +100,8 @@ namespace Pong.Desktop
         const float PADDLE_SPEED = 250f;
         bool gameOver = false;
         bool notStarted = true;
+        float? leftCollision = null;
+        Texture2D pixel;
 
 
         GraphicsDeviceManager graphics;
@@ -122,6 +162,11 @@ namespace Pong.Desktop
             rightPaddle.texture = Content.Load<Texture2D>("paddle");
             font = Content.Load<SpriteFont>("Aldo");
             smol_font = Content.Load<SpriteFont>("44px_Aldo");
+
+            pixel = new Texture2D(this.GraphicsDevice,1,1);
+            Color[] colourData = new Color[1];
+            colourData[0] = Color.White; //The Colour of the rectangle
+            pixel.SetData<Color>(colourData);
         }
 
         /// <summary>
@@ -178,6 +223,15 @@ namespace Pong.Desktop
         }
 
         private void ballAndPaddleCollision(){
+            var posVector = new Vector3(ball.position, 0);
+            var velVector = new Vector3(ball.velocity, 0);
+            var ballRay = new Ray(posVector, velVector);
+
+            var leftPaddleBB = Utilities.getBBfromGameObject(leftPaddle);
+
+            var leftPaddleCollisionPoint = ballRay.Intersects(leftPaddleBB);
+            leftCollision = leftPaddleCollisionPoint;
+
             if (checkTwoObjectCollision(leftPaddle, ball)){
                 ball.position.X = leftPaddle.position.X + (leftPaddle.texture.Width / 2) + (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
@@ -272,6 +326,7 @@ namespace Pong.Desktop
         private void drawScore(SpriteBatch spriteBatch) {
             spriteBatch.DrawString(font, leftScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 1 / 4, 50), Color.White);
             spriteBatch.DrawString(font, rightScore.ToString(), new Vector2(graphics.PreferredBackBufferWidth * 3 / 4 - 37, 50), Color.White);
+            spriteBatch.DrawString(font, leftCollision.ToString(), new Vector2(graphics.PreferredBackBufferWidth /  2 , graphics.PreferredBackBufferHeight / 2), Color.White);
         }
 
         private void drawStartAndEndText(SpriteBatch spriteBatch) {
@@ -339,12 +394,19 @@ namespace Pong.Desktop
         {
             GraphicsDevice.Clear(Color.Black);
 
-            // TODO: Add your drawing code here
             spriteBatch.Begin();
+
+            //spriteBatch.Begin(SpriteSortMode.Immediate,BlendState.Opaque);
+            //RasterizerState state = new RasterizerState();
+            //state.FillMode = FillMode.WireFrame;
+            //spriteBatch.GraphicsDevice.RasterizerState = state;
+
+
             var oldScore = leftScore + rightScore;
             drawScore(spriteBatch);
             drawCollisionObjects(spriteBatch);
             drawStartAndEndText(spriteBatch);
+            spriteBatch.Draw(pixel, Utilities.getRectanglefromGameObject(leftPaddle), Color.Red);
             var newScore = leftScore + rightScore;
             spriteBatch.End();
 
