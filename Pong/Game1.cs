@@ -16,8 +16,7 @@ namespace Pong.Desktop
         public float height;
     }
 
-    class Utilities
-    {
+    class Utilities {
         public static myRectangle combineSizesOfGameObjects(GameObject targetObject, GameObject sourceObject){
             return new myRectangle{
                 width = targetObject.texture.Width + sourceObject.texture.Width,
@@ -34,24 +33,19 @@ namespace Pong.Desktop
                 // Scalar.Sign these values?
         }
 
-        public static bool atLeftBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
-        {
+        public static bool atLeftBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics) {
             return coordinates.X <= texture.Width / 2;
         }
-        public static bool atRightBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
-        {
+        public static bool atRightBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics) {
             return coordinates.X >= graphics.PreferredBackBufferWidth - texture.Width / 2;
         }
-        public static bool atBottomBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
-        {
+        public static bool atBottomBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics) {
             return coordinates.Y <= texture.Height / 2;
         }
-        public static bool atTopBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics)
-        {
+        public static bool atTopBorder(Vector2 coordinates, Texture2D texture, GraphicsDeviceManager graphics) {
             return coordinates.Y >= graphics.PreferredBackBufferHeight - texture.Height / 2;
         }
-        public static float getSpeedMultiplier(System.Random random)
-        {
+        public static float getSpeedMultiplier(System.Random random) {
             // Generates a random number between .5 and 2.0 to double or halve speed
             // TODO: Make the number of > and < 1 multipliers the same
             return (float)random.Next(5, 21) / 10;
@@ -70,8 +64,7 @@ namespace Pong.Desktop
             return new BoundingBox(min, max);
         }
 
-        public static Rectangle getRectanglefromGameObject(GameObject gObject)
-        {
+        public static Rectangle getRectanglefromGameObject(GameObject gObject) {
             var min = new Vector2(gObject.position.X - gObject.texture.Width / 2, gObject.position.Y - gObject.texture.Height / 2);
             var max = new Vector2(gObject.position.X + gObject.texture.Width / 2, gObject.position.Y + gObject.texture.Height / 2);
             var size = new Vector2(max.X - min.X, max.Y - min.Y);
@@ -82,81 +75,43 @@ namespace Pong.Desktop
         }
     }
 
-    /// <summary>
-    /// This is the main type for your game.
-    /// </summary>
-    public class Game1 : Game
-    {
+    public class Game1 : Game {
         GameObject ball;
         GameObject leftPaddle;
         GameObject rightPaddle;
+        Texture2D pixel;
         SpriteFont font;
         SpriteFont smol_font;
-        int leftScore = 0;
-        int rightScore = 0;
-        System.Random random;
+
         const float MAX_BALL_SPEED = 50f;
         const float MIN_BALL_SPEED = 500f;
-        const float PADDLE_SPEED = 250f;
+        const float PADDLE_SPEED = 600f;
+
+        int leftScore = 0;
+        int rightScore = 0;
         bool gameOver = false;
         bool notStarted = true;
+
         float? leftCollision = null;
-        Texture2D pixel;
 
-
+        System.Random random;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        public Game1()
-        {
+        public Game1() {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
 
-        /// <summary>
-        /// Allows the game to perform any initialization it needs to before starting to run.
-        /// This is where it can query for any required services and load any non-graphic
-        /// related content.  Calling base.Initialize will enumerate through any components
-        /// and initialize them as well.
-        /// </summary>
-        protected override void Initialize()
-        {
-            // TODO: Add your initialization logic here
-            ball.position = new Vector2(
-                graphics.PreferredBackBufferWidth / 2,
-                graphics.PreferredBackBufferHeight / 2
-            );
-            ball.velocity = new Vector2(
-                200f,
-                160f
-            );
-
-            leftPaddle.position = new Vector2(
-                32 + 16, // 32 + half the texture width
-                graphics.PreferredBackBufferHeight / 2
-            );
-            leftPaddle.velocity = new Vector2(0,0);
-
-            rightPaddle.position = new Vector2(
-                graphics.PreferredBackBufferWidth - (32 + 16), // 32 + half the texture width
-                graphics.PreferredBackBufferHeight / 2
-            );
-
-            rightPaddle.velocity = new Vector2(0,0);
+        protected override void Initialize() {
+            setupGame();
             random = new System.Random();
             base.Initialize();
         }
 
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
-        /// </summary>
-        protected override void LoadContent()
-        {
-            // Create a new SpriteBatch, which can be used to draw textures.
+        protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
             ball.texture = Content.Load<Texture2D>("ball");
             leftPaddle.texture = Content.Load<Texture2D>("paddle");
             rightPaddle.texture = Content.Load<Texture2D>("paddle");
@@ -165,18 +120,11 @@ namespace Pong.Desktop
 
             pixel = new Texture2D(this.GraphicsDevice,1,1);
             Color[] colourData = new Color[1];
-            colourData[0] = Color.White; //The Colour of the rectangle
+            colourData[0] = Color.White;
             pixel.SetData<Color>(colourData);
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
-        /// </summary>
-        protected override void UnloadContent()
-        {
-            // TODO: Unload any non ContentManager content here
-        }
+        protected override void UnloadContent() { }
 
         private float getLeftPaddlePositionYDiff(float paddleSpeed, GameTime gameTime){
             float yPosDiff = 0;
@@ -232,12 +180,12 @@ namespace Pong.Desktop
             var leftPaddleCollisionPoint = ballRay.Intersects(leftPaddleBB);
             leftCollision = leftPaddleCollisionPoint;
 
-            if (checkTwoObjectCollision(leftPaddle, ball)){
+            if (checkTwoObjectCollision(ball, leftPaddle)){
                 ball.position.X = leftPaddle.position.X + (leftPaddle.texture.Width / 2) + (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
 
-            if (checkTwoObjectCollision(rightPaddle, ball)){
+            if (checkTwoObjectCollision(ball, rightPaddle)){
                 ball.position.X = rightPaddle.position.X - (rightPaddle.texture.Width / 2) - (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
@@ -261,7 +209,7 @@ namespace Pong.Desktop
         }
 
         private Vector2 getCenteredVector() {
-            return new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight);
+            return new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
 
         private bool checkForGameEnd() {
@@ -272,22 +220,27 @@ namespace Pong.Desktop
             leftScore = 0;
             rightScore = 0;
             gameOver = false;
+
             ball.position = getCenteredVector();
-            leftPaddle.position.Y = graphics.PreferredBackBufferHeight / 2;
-            rightPaddle.position.Y = ball.position.Y;
-            ball.velocity = new Vector2(
-                200f,
-                160f
+            leftPaddle.position = new Vector2(
+                32 + 16, // 32 + half the texture width
+                graphics.PreferredBackBufferHeight / 2
             );
+            rightPaddle.position = new Vector2(
+                graphics.PreferredBackBufferWidth - (32 + 16), // 32 + half the texture width
+                graphics.PreferredBackBufferHeight / 2
+            );
+
+            ball.velocity = new Vector2(
+                500f,
+                0f
+            );
+            leftPaddle.velocity = new Vector2(0, 0);
+            rightPaddle.velocity = new Vector2(0, 0);
+
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime)
-        {
+        protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -386,12 +339,7 @@ namespace Pong.Desktop
             );
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
+        protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
