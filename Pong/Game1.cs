@@ -137,11 +137,9 @@ namespace Pong.Desktop
             return MathHelper.Clamp(speed, MIN_BALL_SPEED, MAX_BALL_SPEED);
         }
 
-        private bool checkTwoObjectCollision(GameObject obj1, GameObject obj2){
-            return obj1.position.X < obj2.position.X + obj2.texture.Width / 2 &&
-            obj1.position.X + obj1.texture.Width / 2 > obj2.position.X &&
-            obj1.position.Y < obj2.position.Y + obj2.texture.Height / 2 &&
-            obj1.position.Y + obj1.texture.Height / 2 > obj2.position.Y;
+        private bool twoBoxCollision(GameObject obj1, GameObject obj2) {
+            return (Utilities.abs(obj1.position.X - obj2.position.X) * 2 < (obj1.texture.Width + obj2.texture.Width)) &&
+                   (Utilities.abs(obj1.position.Y - obj2.position.Y) * 2 < (obj1.texture.Height + obj2.texture.Height));
         }
 
         private void ballAndPaddleCollision(){
@@ -154,12 +152,12 @@ namespace Pong.Desktop
             var leftPaddleCollisionPoint = ballRay.Intersects(leftPaddleBB);
             leftCollision = leftPaddleCollisionPoint;
 
-            if (checkTwoObjectCollision(leftPaddle, ball)){
+            if (twoBoxCollision(leftPaddle, ball)){
                 ball.position.X = leftPaddle.position.X + (leftPaddle.texture.Width / 2) + (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
 
-            if (checkTwoObjectCollision(rightPaddle, ball)){
+            if (twoBoxCollision(rightPaddle, ball)){
                 ball.position.X = rightPaddle.position.X - (rightPaddle.texture.Width / 2) - (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
@@ -206,8 +204,8 @@ namespace Pong.Desktop
             );
 
             ball.velocity = new Vector2(
-                200f,
-                160f
+                400f,
+                230f
             );
             leftPaddle.velocity = new Vector2(0, 0);
             rightPaddle.velocity = new Vector2(0, 0);
@@ -289,16 +287,9 @@ namespace Pong.Desktop
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
 
-            //spriteBatch.Begin(SpriteSortMode.Immediate,BlendState.Opaque);
-            //RasterizerState state = new RasterizerState();
-            //state.FillMode = FillMode.WireFrame;
-            //spriteBatch.GraphicsDevice.RasterizerState = state;
-
-
             TextRendering.drawScore(spriteBatch, State, graphics, font);
             drawCollisionObjects(spriteBatch);
             TextRendering.drawStartAndEndText(spriteBatch, State, graphics, smol_font);
-            spriteBatch.Draw(pixel, Utilities.getRectanglefromGameObject(leftPaddle), Color.Red);
             spriteBatch.End();
 
             base.Draw(gameTime);
