@@ -170,6 +170,11 @@ namespace Pong.Desktop
             obj1.position.Y + obj1.texture.Height / 2 > obj2.position.Y;
         }
 
+        private bool altTwoBoxCollision(GameObject obj1, GameObject obj2) {
+            return (Utilities.abs(obj1.position.X - obj2.position.X) * 2 < (obj1.texture.Width + obj2.texture.Width)) &&
+                   (Utilities.abs(obj1.position.Y - obj2.position.Y) * 2 < (obj1.texture.Height + obj2.texture.Height));
+        }
+
         private void ballAndPaddleCollision(){
             var posVector = new Vector3(ball.position, 0);
             var velVector = new Vector3(ball.velocity, 0);
@@ -180,12 +185,12 @@ namespace Pong.Desktop
             var leftPaddleCollisionPoint = ballRay.Intersects(leftPaddleBB);
             leftCollision = leftPaddleCollisionPoint;
 
-            if (checkTwoObjectCollision(ball, leftPaddle)){
+            if (altTwoBoxCollision(ball, leftPaddle)){
                 ball.position.X = leftPaddle.position.X + (leftPaddle.texture.Width / 2) + (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
 
-            if (checkTwoObjectCollision(ball, rightPaddle)){
+            if (altTwoBoxCollision(ball, rightPaddle)){
                 ball.position.X = rightPaddle.position.X - (rightPaddle.texture.Width / 2) - (ball.texture.Width / 2);
                 ball.velocity.X *= -1;
             }
