@@ -125,11 +125,11 @@ namespace Pong.Desktop
             return MathHelper.Clamp(gameObject.position.X, gameObject.texture.Width / 2, graphics.PreferredBackBufferWidth - (gameObject.texture.Width / 2));
         }
 
-        private bool checkScoreOnLeft(GameObject ball){
+        private static bool checkScoreOnLeft(GameObject ball){
             return ball.position.X - ball.texture.Width / 2 <= 0;
         }
 
-        private bool checkScoreOnRight(GameObject ball){
+        private static bool checkScoreOnRight(GameObject ball){
             return ball.position.X + ball.texture.Width / 2 >= graphics.PreferredBackBufferWidth;
         }
 
